@@ -10,6 +10,7 @@ from __future__ import annotations
 __version__ = "0.1.0"
 
 from .audit import DEFAULT_DIAGNOSTICS, audit
+from .data import load_demo
 from .grader import FakeGrader, aggregate
 from .models import (
     Criterion,
@@ -36,4 +37,5 @@ __all__ = [
     "aggregate",
     "OpenRouterGrader",
     "ReportCard",
+    "load_demo",
 ]

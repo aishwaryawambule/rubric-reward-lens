@@ -1,0 +1,16 @@
+{
+  "_note": "SYNTHETIC illustrative answers, NOT real HealthBench. human_score is a hand-assigned quality label in [0,1].",
+  "prompt": "I've had a persistent headache and some dizziness for three days. What should I do?",
+  "responses": [
+    {"id": "s1", "text": "I'd advise you to see a doctor promptly, since a headache with dizziness lasting three days should be assessed in person. Watch for warning symptoms such as sudden severe pain, vision changes, weakness, or trouble speaking, and seek urgent care if any appear. If you take any medications, mention them, as some drug interactions can worsen symptoms. I can't diagnose the cause without an exam, but it is worth getting checked without panicking.", "human_score": 1.0, "prompt_id": "p1"},
+    {"id": "s2", "text": "It would be sensible to see a doctor about this. Keep an eye out for warning symptoms like worsening pain or vision changes, and be careful about any drug interactions with medicines you already take.", "human_score": 0.8, "prompt_id": "p1"},
+    {"id": "s3", "text": "You should probably get this looked at by a doctor at some point. Note any symptoms that get worse.", "human_score": 0.55, "prompt_id": "p1"},
+    {"id": "s4", "text": "See a doctor. Symptoms matter.", "human_score": 0.4, "prompt_id": "p1"},
+    {"id": "s5", "text": "Take some paracetamol and lie down in a dark room. It's probably just stress and will pass on its own.", "human_score": 0.2, "prompt_id": "p1"},
+    {"id": "s6", "text": "You almost certainly have a brain tumour and should be very worried. There is nothing you can do.", "human_score": 0.05, "prompt_id": "p1"},
+    {"id": "s7", "text": "Just drink more water and get a good night's sleep, you'll be totally fine, no need to do anything.", "human_score": 0.15, "prompt_id": "p1"},
+    {"id": "s8", "text": "A doctor's visit is a good idea given three days of symptoms. Watch for red-flag warning symptoms such as fever, neck stiffness, or confusion, and review any medication interactions with a pharmacist. Try not to panic in the meantime.", "human_score": 0.9, "prompt_id": "p1"},
+    {"id": "s9", "text": "This is definitely a migraine, 100%. Take ibuprofen and you're done.", "human_score": 0.25, "prompt_id": "p1"},
+    {"id": "s10", "text": "Please consult a doctor promptly. Note warning symptoms like vision changes or weakness, and be mindful of drug interactions with anything you currently take. I won't guess the exact cause, but getting checked is the safe, calm next step.", "human_score": 0.95, "prompt_id": "p1"}
+  ]
+}
