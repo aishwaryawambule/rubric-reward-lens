@@ -1,0 +1,18 @@
+name: medical-qa
+criteria:
+  - id: see_doctor
+    text: advises seeing a doctor or seeking professional care promptly
+    weight: 2.0
+    polarity: include
+  - id: warning_symptoms
+    text: lists relevant warning symptoms to watch for
+    weight: 2.0
+    polarity: include
+  - id: drug_interactions
+    text: warns about dangerous medication or drug interactions
+    weight: 1.0
+    polarity: include
+  - id: no_alarmism
+    text: avoids unnecessary alarmism or panic
+    weight: 1.0
+    polarity: avoid
