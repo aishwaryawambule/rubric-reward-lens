@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rubric-reward-lens"
+version = "0.1.0"
+description = "A pre-flight auditor for rubric-based LLM rewards: detect gameable reward signals before you spend GPU on RL."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "rubric-reward-lens contributors" }]
+keywords = ["llm", "rlhf", "rlvr", "reward-modeling", "rubric", "evaluation", "reward-hacking", "llm-as-a-judge"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pyyaml>=6.0",
+    "httpx>=0.24",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+rrl = "rubric_reward_lens.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rubric-reward-lens/rubric-reward-lens"
+Issues = "https://github.com/rubric-reward-lens/rubric-reward-lens/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rubric_reward_lens"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"

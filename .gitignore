@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Test / cache
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Generated report outputs
+*.report.html
+*.report.json
+/tmp_*.html
+/tmp_*.json
+
+# SDD scratch
+.superpowers/
+
+# OS
+.DS_Store
