@@ -39,7 +39,7 @@ for gameability**.
 pip install rubric-reward-lens   # (or: pip install -e . from a clone)
 ```
 
-Inference-only: needs `numpy`, `scipy`, `pyyaml`, `httpx`. No GPU, no `torch`.
+Inference-only: needs `numpy`, `pyyaml`, `httpx`. No GPU, no `torch`.
 
 ## Quickstart
 

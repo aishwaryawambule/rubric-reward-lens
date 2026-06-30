@@ -26,6 +26,16 @@ class AlignmentResult:
     n: int = 0
 
 
+def _normalize01(values: list[float]) -> list[float]:
+    """Min-max scale to ``[0, 1]`` so human scores on any scale (0–1, 1–5,
+    0–100) line up with the grader's ``[0, 1]`` reward. Degenerate (all-equal)
+    input maps to ``0.5``."""
+    lo, hi = min(values), max(values)
+    if hi - lo < 1e-12:
+        return [0.5 for _ in values]
+    return [(v - lo) / (hi - lo) for v in values]
+
+
 def _bin(values: list[float], n_bands: int) -> list[int]:
     edges = np.linspace(0.0, 1.0, n_bands + 1)
     # clip to last band; rightmost edge inclusive
@@ -45,7 +55,7 @@ def run_alignment(
         raise ValueError("run_alignment requires responses with human_score set")
 
     rewards = [grader.grade(rubric, r).reward for r in labeled]
-    humans = [float(r.human_score) for r in labeled]
+    humans = _normalize01([float(r.human_score) for r in labeled])
 
     corr = spearman(rewards, humans)
     rb = _bin(rewards, n_bands)

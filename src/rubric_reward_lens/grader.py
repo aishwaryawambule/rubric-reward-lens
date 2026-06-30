@@ -87,7 +87,9 @@ class FakeGrader:
             haystack = haystack[: self.window]
         scores: list[CriterionScore] = []
         for c in rubric.criteria:
-            present = any(kw in haystack for kw in self._kw(c))
+            present = any(
+                re.search(rf"\b{re.escape(kw)}\b", haystack) for kw in self._kw(c)
+            )
             if c.polarity is Polarity.AVOID:
                 score = 0.0 if present else 1.0
             else:

@@ -47,6 +47,23 @@ def test_to_markdown_has_sections():
     assert "# Reward Report Card" in md and "Reward hacking" in md
 
 
+def test_minor_gaming_with_high_trust_says_caution_not_fix():
+    # small but significant gain + otherwise-healthy diagnostics -> the headline
+    # must NOT scream "fix before training"; it should be a softer caution.
+    minor = HackingResult(
+        overall_hack_gain=0.07,
+        ci=(0.02, 0.12),
+        per_probe={"keyword_stuff": (0.07, 0.02, 0.12)},
+        per_criterion_gameability={"c1": 0.07},
+        hackable=True,
+        n=4,
+    )
+    card = ReportCard("r", 4, hacking=minor, monotonicity=_robust_mono())
+    assert card.trust_score >= 0.6
+    assert "Fix the rubric before training" not in card.verdict
+    assert "Caution" in card.verdict
+
+
 def test_to_html_is_html(tmp_path):
     card = ReportCard("r", 4, hacking=_hackable())
     out = tmp_path / "card.html"

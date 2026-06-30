@@ -52,17 +52,26 @@ class ReportCard:
         sub = self.sub_scores()
         return sum(sub.values()) / len(sub) if sub else 0.0
 
+    # A hack worth a "stop and fix" headline; below this the gaming is detected
+    # but minor relative to the overall picture, so it gets a softer "caution".
+    SERIOUS_HACK_GAIN = 0.15
+
     @property
     def verdict(self) -> str:
-        if self.hacking is not None and self.hacking.hackable:
-            worst = max(
-                self.hacking.per_probe.items(), key=lambda kv: kv[1][0], default=None
-            )
-            probe = f" (worst: {worst[0]} +{worst[1][0]:.2f})" if worst else ""
+        h = self.hacking
+        if h is not None and h.hackable:
+            worst = max(h.per_probe.items(), key=lambda kv: kv[1][0], default=None)
+            name = worst[0] if worst else "a probe"
+            serious = h.overall_hack_gain >= self.SERIOUS_HACK_GAIN or self.trust_score < 0.6
+            if serious:
+                return (
+                    f"⚠️ Hackable — '{name}' gains +{h.overall_hack_gain:.2f} reward "
+                    f"without real quality. Trust score {self.trust_score:.2f}. "
+                    f"Fix the rubric before training."
+                )
             return (
-                f"⚠️ Hackable — reward can be gamed for "
-                f"+{self.hacking.overall_hack_gain:.2f}{probe}. Trust score "
-                f"{self.trust_score:.2f}. Fix the rubric before training."
+                f"⚠️ Caution — '{name}' can game +{h.overall_hack_gain:.2f}, but overall "
+                f"trust score {self.trust_score:.2f}. Review the probes below."
             )
         if self.trust_score >= 0.7:
             return (

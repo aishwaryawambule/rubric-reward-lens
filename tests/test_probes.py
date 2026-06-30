@@ -31,10 +31,23 @@ def test_keyword_stuff_inserts_all_keywords_and_grows():
     assert out.id == "r1::keyword_stuff"
 
 
-def test_verbosity_pad_grows():
+def test_verbosity_pad_grows_but_adds_no_keywords():
     out = verbosity_pad(_resp(), _rubric())
     assert len(out.text) > len(_resp().text)
     assert out.id == "r1::verbosity_pad"
+    # the appended filler must not contain rubric keywords, else "padding" gain
+    # is really keyword leakage, not length bias.
+    added = out.text[len(_resp().text):].lower()
+    keywords = _keywords_for("advises seeing a doctor") + _keywords_for("lists warning symptoms")
+    assert not any(kw in added.split() for kw in keywords)
+
+
+def test_keyword_stuff_skips_avoid_criteria():
+    from rubric_reward_lens.models import Polarity
+
+    r = Rubric([Criterion("c1", "doctor"), Criterion("c2", "jargon", polarity=Polarity.AVOID)])
+    out = keyword_stuff(Response("r1", "hello"), r).text.lower()
+    assert "doctor" in out and "jargon" not in out
 
 
 def test_confident_wrong_adds_claim():
