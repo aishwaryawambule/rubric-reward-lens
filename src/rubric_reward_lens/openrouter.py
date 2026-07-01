@@ -86,11 +86,13 @@ class OpenRouterGrader:
         temperature: float = 0.0,
         api_key: str | None = None,
         transport: httpx.BaseTransport | None = None,
+        base_url: str = _API_URL,
     ) -> None:
         self.model = model
         self.prompt_template = prompt_template or _DEFAULT_PROMPT
         self.temperature = temperature
         self.api_key = api_key or os.environ.get("OPENROUTER_API_KEY", "")
+        self.base_url = base_url
         self._client = httpx.Client(transport=transport, timeout=120.0)
 
     def grade(self, rubric: Rubric, response: Response) -> GraderResult:
@@ -103,7 +105,7 @@ class OpenRouterGrader:
             "messages": [{"role": "user", "content": prompt}],
         }
         headers = {"Authorization": f"Bearer {self.api_key}"}
-        resp = self._client.post(_API_URL, json=payload, headers=headers)
+        resp = self._client.post(self.base_url, json=payload, headers=headers)
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"]
         return parse_grader_json(content, rubric, response.id)

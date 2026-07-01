@@ -1,0 +1,7 @@
+# Grade with a LOCAL model via Ollama — no API key, no cost, no data leaves your machine.
+# Prerequisite: `ollama serve` running and the model pulled (`ollama pull qwen2.5:14b`).
+# Pick any model you have (`ollama list`); smaller = faster, larger = better judge.
+type: ollama
+model: qwen2.5:14b
+temperature: 0.0
+# base_url: http://localhost:11434/v1/chat/completions   # override if Ollama runs elsewhere

@@ -34,3 +34,36 @@ def test_audit_writes_json(tmp_path):
 def test_unknown_command_errors():
     with pytest.raises(SystemExit):
         main(["frobnicate"])
+
+
+def _write(p, obj):
+    p.write_text(json.dumps(obj))
+    return str(p)
+
+
+def test_audit_malformed_responses_prints_clean_error(tmp_path, capsys):
+    # A response missing the required "text" field must produce a clean
+    # 'error: ...' message and a non-zero exit, not a raw Python traceback.
+    rubric = _write(tmp_path / "rubric.json", {"name": "t", "criteria": [{"id": "c1", "text": "doctor"}]})
+    grader = _write(tmp_path / "grader.json", {"type": "fake"})
+    responses = _write(tmp_path / "resp.json", [{"id": "r1"}])  # no "text"
+
+    rc = main(["audit", "--rubric", rubric, "--grader", grader, "--responses", responses])
+
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert err.lower().startswith("error:")
+    assert "Traceback" not in err
+
+
+def test_audit_unknown_grader_type_prints_clean_error(tmp_path, capsys):
+    rubric = _write(tmp_path / "rubric.json", {"name": "t", "criteria": [{"id": "c1", "text": "doctor"}]})
+    grader = _write(tmp_path / "grader.json", {"type": "nonsense"})
+    responses = _write(tmp_path / "resp.json", [{"id": "r1", "text": "see a doctor"}])
+
+    rc = main(["audit", "--rubric", rubric, "--grader", grader, "--responses", responses])
+
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert err.lower().startswith("error:")
+    assert "Traceback" not in err

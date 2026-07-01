@@ -20,6 +20,7 @@ from .models import (
     Response,
     Rubric,
 )
+from .ollama import OllamaGrader
 from .openrouter import OpenRouterGrader
 from .report import ReportCard
 
@@ -36,6 +37,7 @@ __all__ = [
     "FakeGrader",
     "aggregate",
     "OpenRouterGrader",
+    "OllamaGrader",
     "ReportCard",
     "load_demo",
 ]

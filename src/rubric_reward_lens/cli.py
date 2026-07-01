@@ -37,6 +37,14 @@ def _make_grader(cfg: dict):
             temperature=cfg.get("temperature", 0.0),
             api_key=cfg.get("api_key"),
         )
+    if gtype == "ollama":
+        from .ollama import OllamaGrader, OLLAMA_URL
+
+        return OllamaGrader(
+            model=cfg["model"],
+            base_url=cfg.get("base_url", OLLAMA_URL),
+            temperature=cfg.get("temperature", 0.0),
+        )
     raise ValueError(f"unknown grader type: {gtype!r}")
 
 
@@ -44,16 +52,21 @@ def _load_responses(path: str) -> list[Response]:
     with open(path, encoding="utf-8") as fh:
         raw = json.load(fh)
     items = raw["responses"] if isinstance(raw, dict) else raw
-    return [
-        Response(
-            id=str(r["id"]),
-            text=str(r["text"]),
-            prompt_id=str(r.get("prompt_id", "")),
-            prompt=str(r.get("prompt", "")),
-            human_score=(None if r.get("human_score") is None else float(r["human_score"])),
-        )
-        for r in items
-    ]
+    out: list[Response] = []
+    for i, r in enumerate(items):
+        try:
+            out.append(
+                Response(
+                    id=str(r["id"]),
+                    text=str(r["text"]),
+                    prompt_id=str(r.get("prompt_id", "")),
+                    prompt=str(r.get("prompt", "")),
+                    human_score=(None if r.get("human_score") is None else float(r["human_score"])),
+                )
+            )
+        except KeyError as e:
+            raise ValueError(f"response #{i} is missing required field {e}") from e
+    return out
 
 
 def _emit(card: ReportCard, out: str | None) -> None:
@@ -91,19 +104,26 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    if args.command == "demo":
-        rubric, responses = load_demo()
-        return _run_audit(rubric, FakeGrader(), responses, human_labels=True, out=args.out)
+    try:
+        if args.command == "demo":
+            rubric, responses = load_demo()
+            return _run_audit(rubric, FakeGrader(), responses, human_labels=True, out=args.out)
 
-    if args.command == "audit":
-        rubric = (
-            Rubric.from_yaml(args.rubric)
-            if args.rubric.endswith((".yaml", ".yml"))
-            else Rubric.from_json(args.rubric)
-        )
-        grader = _make_grader(_load_config(args.grader))
-        responses = _load_responses(args.responses)
-        return _run_audit(rubric, grader, responses, human_labels=args.human_labels, out=args.out)
+        if args.command == "audit":
+            rubric = (
+                Rubric.from_yaml(args.rubric)
+                if args.rubric.endswith((".yaml", ".yml"))
+                else Rubric.from_json(args.rubric)
+            )
+            grader = _make_grader(_load_config(args.grader))
+            responses = _load_responses(args.responses)
+            return _run_audit(rubric, grader, responses, human_labels=args.human_labels, out=args.out)
+    except FileNotFoundError as e:
+        sys.stderr.write(f"error: file not found: {e.filename}\n")
+        return 1
+    except (OSError, ValueError, KeyError, yaml.YAMLError) as e:
+        sys.stderr.write(f"error: {e}\n")
+        return 1
 
     return 2  # pragma: no cover
 
