@@ -143,6 +143,66 @@ The verdict is printed to the terminal; the full report goes to `--out`. Prefer
 
 ---
 
+## Graders & API keys
+
+The **grader** is the judge you're auditing. Three ship built in (or bring your own — see
+the custom-grader example above):
+
+| Grader | Needs | How to configure |
+| --- | --- | --- |
+| `FakeGrader` | nothing — offline keyword matcher (demos/tests) | — |
+| `OllamaGrader` | a local Ollama server | **no key**; optional `base_url` |
+| `OpenRouterGrader` | an OpenRouter API key | `OPENROUTER_API_KEY` env var, or `api_key` |
+
+### OpenRouter — needs an API key
+
+The `OPENROUTER_API_KEY` env var is read by **both** the library and the CLI, and keeps the
+secret out of your code/config — prefer it:
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+```
+
+**In the library** — the env var is read automatically, or pass `api_key=` directly:
+```python
+grader = OpenRouterGrader(model="anthropic/claude-haiku-4.5")                       # uses OPENROUTER_API_KEY
+grader = OpenRouterGrader(model="anthropic/claude-haiku-4.5", api_key="sk-or-...")  # explicit
+```
+
+**From the CLI** — put it in the `--grader` config, or omit `api_key` to use the env var:
+```yaml
+type: openrouter
+model: anthropic/claude-haiku-4.5
+# api_key: sk-or-...        # optional; omit to use OPENROUTER_API_KEY (don't commit secrets)
+```
+
+If `api_key` isn't provided, `OpenRouterGrader` falls back to the `OPENROUTER_API_KEY`
+environment variable.
+
+### Ollama — no key (it's local)
+
+Ollama needs no API key; just run the server and pull a model. You only set the **URL** if
+it isn't on the default `http://localhost:11434`:
+
+```bash
+ollama serve && ollama pull llama3.1
+```
+
+**In the library:**
+```python
+grader = OllamaGrader(model="llama3.1")   # localhost:11434
+grader = OllamaGrader(model="llama3.1", base_url="http://192.168.1.50:11434/v1/chat/completions")
+```
+
+**From the CLI:**
+```yaml
+type: ollama
+model: llama3.1
+# base_url: http://localhost:11434/v1/chat/completions   # only if not the default
+```
+
+---
+
 ## Which output format?
 
 - **markdown / HTML** — human-readable: verdict, trust score, and the per-diagnostic table
