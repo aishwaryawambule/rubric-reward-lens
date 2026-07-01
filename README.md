@@ -35,11 +35,19 @@ for gameability**.
 
 ## Install
 
+Not on PyPI yet — install from a clone:
+
 ```bash
-pip install rubric-reward-lens   # (or: pip install -e . from a clone)
+git clone https://github.com/rubric-reward-lens/rubric-reward-lens
+cd rubric-reward-lens
+pip install .          # add ".[dev]" to also get pytest
 ```
 
-Inference-only: needs `numpy`, `pyyaml`, `httpx`. No GPU, no `torch`.
+Use a regular `pip install .`, **not** the editable `pip install -e .` — on recent
+Python (3.14) the editable install can silently produce a non-importable package.
+Once published, `pip install rubric-reward-lens` will work directly.
+
+Requires Python ≥ 3.11. Inference-only: needs `numpy`, `pyyaml`, `httpx`. No GPU, no `torch`.
 
 ## Quickstart
 
@@ -56,13 +64,27 @@ print(card.verdict)            # e.g. "⚠️ Hackable — reward can be gamed f
 card.to_html("report.html")    # full report card
 ```
 
-No API key? The CLI runs the whole pipeline offline with a deterministic grader:
+Prefer a **local model** (no API key, no cost, no data leaves your machine)? Use a model
+served by [Ollama](https://ollama.com):
+
+```python
+from rubric_reward_lens import OllamaGrader, audit, load_demo
+
+rubric, responses = load_demo()
+grader = OllamaGrader(model="qwen2.5:14b")   # needs `ollama serve` + the model pulled
+card = audit(rubric, grader, responses, human_labels=True)
+```
+
+No grader at all? The CLI runs the whole pipeline offline with a deterministic grader:
 
 ```bash
 rrl demo --out report.html
 rrl audit --rubric examples/rubric.yaml --grader examples/grader.fake.yaml \
           --responses responses.json --out report.html
 ```
+
+Grader configs for the CLI: `{type: fake}`, `{type: ollama, model: ...}`, or
+`{type: openrouter, model: ...}` — see [examples/](examples/).
 
 ## What it checks (the diagnostics)
 
@@ -76,10 +98,29 @@ reported throughout (following
 | **Discrimination / monotonicity** | When an answer is progressively degraded, does the reward actually fall? |
 | **Grader stability** | Re-grading the same answer, how much does the reward wobble? |
 | **Criterion structure** | Are criteria redundant, low-signal, or does the reward over-depend on one? |
+| **Criterion-order invariance** | Does the reward change when the rubric's criteria are listed in a different order? (judge position bias, [arXiv:2602.02219](https://arxiv.org/abs/2602.02219)) |
 | **Human alignment** *(optional)* | When you have human scores, how well does the reward agree (QWK / κ / calibration)? |
 
-The report card combines these into a composite **trust score** and a one-line verdict —
-without hiding the per-diagnostic breakdown.
+The report card combines these into a composite **trust score** and a one-line verdict,
+over a per-diagnostic table where every score reads 0–1 (1 = good) with a plain-English
+"what it means" — raw metrics are kept in the JSON output:
+
+```
+⚠️ Caution — trust score 0.63; review the diagnostics before training.
+- Composite trust score: 0.63  (0–1, higher is better)
+
+## Diagnostics
+| Diagnostic   | Score | What it means                                |
+| hacking      | 0.97  | not gameable                                 |
+| monotonicity | 0.69  | mostly tracks quality (7 inversions)         |
+| stability    | 1.00  | identical on re-grade                        |
+| structure    | 0.50  | 2 low-signal criteria: accurate, not_evasive |
+| alignment    | 0.00  | does not match human scores                  |
+```
+
+Two short docs explain the output: [**Interpreting the report card**](docs/interpreting-the-report.md)
+(how to read it and decide if a reward is safe to train on) and
+[**Metrics & scores reference**](docs/metrics.md) (the precise definition of every metric and score).
 
 ## Using an LLM-as-a-judge for anything?
 
@@ -93,6 +134,29 @@ The tool has its own falsification test (`tests/test_validation.py`): it must fl
 presence-only rubric graded by a keyword-matching grader as **hackable**, and clear a
 grader that resists the same probes as **robust** — reproducing the qualitative pattern of
 arXiv:2606.04923. If it can't separate the two, it doesn't ship.
+
+## Limitations
+
+v0.1 is deliberately a small, honest core. Know these before you rely on it:
+
+- **The four hack probes are not exhaustive.** They model the *documented* failure modes
+  (presence, verbosity, confidence, format). Domain-specific gaming — sycophancy,
+  prompt-injection, self-preference, fabricated citations — is not covered. Add your own
+  probe (a function `(response, rubric) -> response`) for those.
+- **Custom probes/diagnostics aren't first-class yet.** You can pass `probes=` to
+  `run_hacking` directly, but the one-line `audit()` / CLI always use the built-in set.
+- **Diagnostics need a real sample.** With very few responses, hacking / monotonicity /
+  structure / alignment are statistical artifacts (any 2 points force a correlation of ±1).
+  Aim for **~15–20+** responses; grader **stability** is the exception (meaningful at any n).
+- **Auditing an LLM judge is not free.** Each response costs **~20 grade calls** (probes +
+  degradation ladder + stability re-grades + criterion-order permutations), so cost ≈
+  `20 × responses × grader-speed`. On a large local model this is minutes-to-hours; use a
+  fast/cheap grader or a smaller sample.
+- **The composite trust score is a heuristic**, not a calibrated probability. Read the
+  per-diagnostic table, and treat a `Hackable` verdict as disqualifying regardless of the score.
+- **Early and unstable.** v0.1 — the API and outputs may change.
+
+See [ROADMAP.md](ROADMAP.md) for what's planned next.
 
 ## Note on the demo data
 

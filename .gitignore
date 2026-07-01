@@ -17,11 +17,18 @@ htmlcov/
 # Generated report outputs
 *.report.html
 *.report.json
+report*.html
+report*.json
 /tmp_*.html
 /tmp_*.json
 
-# SDD scratch
+# Real dataset slices pulled by examples/load_helpsteer2.py (reproducible; not
+# ours to redistribute — the bundled demo data is synthetic on purpose)
+examples/helpsteer2_responses.json
+
+# SDD / planning scratch (not committed)
 .superpowers/
+docs/superpowers/
 
 # OS
 .DS_Store
