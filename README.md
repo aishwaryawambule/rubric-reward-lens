@@ -122,8 +122,9 @@ over a per-diagnostic table where every score reads 0–1 (1 = good) with a plai
 | alignment    | 0.00  | does not match human scores                  |
 ```
 
-See [**`examples/sample_report.html`**](examples/sample_report.html) for a full generated
-report (open it in a browser) — the output of `rrl demo`.
+See a full generated report (the output of `rrl demo`):
+[**`sample_report.md`**](examples/sample_report.md) (renders right here on GitHub) or
+[`sample_report.html`](examples/sample_report.html) (styled — open in a browser).
 
 Two short docs explain the output: [**Interpreting the report card**](docs/interpreting-the-report.md)
 (how to read it and decide if a reward is safe to train on) and
