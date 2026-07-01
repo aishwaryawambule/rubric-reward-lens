@@ -7,13 +7,14 @@ from __future__ import annotations
 from .diagnostics.alignment import run_alignment
 from .diagnostics.hacking import run_hacking
 from .diagnostics.monotonicity import run_monotonicity
+from .diagnostics.order import run_criterion_order
 from .diagnostics.stability import run_stability
 from .diagnostics.structure import run_structure
 from .grader import Grader
 from .models import Response, Rubric
 from .report import ReportCard
 
-DEFAULT_DIAGNOSTICS = ("hacking", "monotonicity", "stability", "structure")
+DEFAULT_DIAGNOSTICS = ("hacking", "monotonicity", "stability", "structure", "criterion_order")
 
 
 def audit(
@@ -31,6 +32,12 @@ def audit(
     ``human_labels=True`` to additionally run the alignment diagnostic on
     responses that carry a ``human_score``.
     """
+    if not responses:
+        raise ValueError(
+            "audit() requires at least one response; got an empty list "
+            "(cannot judge a reward signal with no evidence)"
+        )
+
     card = ReportCard(rubric_name=rubric.name, n_responses=len(responses))
 
     if "hacking" in diagnostics:
@@ -41,6 +48,8 @@ def audit(
         card.stability = run_stability(rubric, grader, responses, seed=seed)
     if "structure" in diagnostics:
         card.structure = run_structure(rubric, grader, responses, seed=seed)
+    if "criterion_order" in diagnostics:
+        card.order = run_criterion_order(rubric, grader, responses, seed=seed)
 
     if human_labels:
         labeled = [r for r in responses if r.human_score is not None]

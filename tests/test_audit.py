@@ -1,6 +1,15 @@
+import pytest
+
 import rubric_reward_lens as rrl
 from rubric_reward_lens.audit import audit
 from rubric_reward_lens.grader import FakeGrader
+
+
+def test_audit_rejects_empty_responses(rubric):
+    # Auditing zero responses must not silently report "Robust" — there is no
+    # evidence to make any claim about, so it is an error.
+    with pytest.raises(ValueError, match="empty"):
+        audit(rubric, FakeGrader(), [])
 
 
 def test_audit_runs_default_diagnostics(rubric, responses):
@@ -9,6 +18,7 @@ def test_audit_runs_default_diagnostics(rubric, responses):
     assert card.monotonicity is not None
     assert card.stability is not None
     assert card.structure is not None
+    assert card.order is not None
     assert card.alignment is None
 
 

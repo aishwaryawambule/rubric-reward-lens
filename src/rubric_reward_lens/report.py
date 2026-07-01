@@ -12,12 +12,54 @@ from dataclasses import dataclass
 from .diagnostics.alignment import AlignmentResult
 from .diagnostics.hacking import HackingResult
 from .diagnostics.monotonicity import MonotonicityResult
+from .diagnostics.order import OrderResult
 from .diagnostics.stability import StabilityResult
 from .diagnostics.structure import StructureResult
 
 
 def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, x))
+
+
+def _what_it_means(name: str, r) -> str:
+    """Plain-English reading of a diagnostic result (display-only; thresholds
+    are presentation heuristics, not part of the score)."""
+    if name == "hacking":
+        if not r.hackable:
+            return "not gameable"
+        worst = max(r.per_probe, key=lambda n: r.per_probe[n][0]) if r.per_probe else "a probe"
+        leaks = [
+            cid
+            for cid, g in sorted(r.per_criterion_gameability.items(), key=lambda kv: kv[1], reverse=True)
+            if g > 0
+        ][:3]
+        return f"gameable via {worst}" + (f" — leakiest: {', '.join(leaks)}" if leaks else "")
+    if name == "monotonicity":
+        if r.monotonic and r.inversions == 0:
+            return "reward falls cleanly as quality drops"
+        if r.monotonic:
+            return f"mostly tracks quality ({r.inversions} inversions)"
+        return f"does not reliably track quality ({r.inversions} inversions)"
+    if name == "stability":
+        return "identical on re-grade" if r.stable else "wobbles across re-grades"
+    if name == "structure":
+        parts = []
+        if r.low_signal_criteria:
+            parts.append(f"{len(r.low_signal_criteria)} low-signal: {', '.join(r.low_signal_criteria)}")
+        if r.redundant_pairs:
+            parts.append(f"{len(r.redundant_pairs)} redundant pair(s)")
+        return "; ".join(parts) if parts else "all criteria informative"
+    if name == "criterion_order":
+        if r.order_invariant:
+            return "order-invariant"
+        return f"reward drifts with criterion order (mean Δ {r.mean_drift:.2f})"
+    if name == "alignment":
+        if r.qwk >= 0.6:
+            return "matches human scores"
+        if r.qwk >= 0.2:
+            return "weak agreement with humans"
+        return "does not match human scores"
+    return ""
 
 
 @dataclass
@@ -28,6 +70,7 @@ class ReportCard:
     monotonicity: MonotonicityResult | None = None
     stability: StabilityResult | None = None
     structure: StructureResult | None = None
+    order: OrderResult | None = None
     alignment: AlignmentResult | None = None
 
     # ---- composite scoring -------------------------------------------------
@@ -43,6 +86,8 @@ class ReportCard:
             n_crit = max(1, len(self.structure.coverage))
             frac_low = len(self.structure.low_signal_criteria) / n_crit
             s["structure"] = 1.0 - _clamp(frac_low)
+        if self.order is not None:
+            s["criterion_order"] = 1.0 - _clamp(self.order.mean_drift)
         if self.alignment is not None:
             s["alignment"] = _clamp(self.alignment.qwk)
         return s
@@ -105,6 +150,7 @@ class ReportCard:
                 "monotonicity": conv(self.monotonicity) if self.monotonicity else None,
                 "stability": conv(self.stability) if self.stability else None,
                 "structure": conv(self.structure) if self.structure else None,
+                "criterion_order": conv(self.order) if self.order else None,
                 "alignment": conv(self.alignment) if self.alignment else None,
             },
         }
@@ -117,62 +163,34 @@ class ReportCard:
         return text
 
     def to_markdown(self, path: str | None = None) -> str:
+        results = {
+            "hacking": self.hacking,
+            "monotonicity": self.monotonicity,
+            "stability": self.stability,
+            "structure": self.structure,
+            "criterion_order": self.order,
+            "alignment": self.alignment,
+        }
         lines = [
             f"# Reward Report Card — {self.rubric_name}",
             "",
             f"**{self.verdict}**",
             "",
             f"- Responses audited: {self.n_responses}",
-            f"- Composite trust score: **{self.trust_score:.2f}**",
+            f"- Composite trust score: **{self.trust_score:.2f}**  (0–1, higher is better)",
             "",
-            "## Sub-scores",
+            "## Diagnostics",
             "",
-            "| Diagnostic | Score |",
-            "| --- | --- |",
+            "| Diagnostic | Score | What it means |",
+            "| --- | --- | --- |",
         ]
-        for k, v in self.sub_scores().items():
-            lines.append(f"| {k} | {v:.2f} |")
-        if self.hacking is not None:
-            lines += [
-                "",
-                "## Reward hacking",
-                f"- Overall hack gain: {self.hacking.overall_hack_gain:.3f} "
-                f"(CI {self.hacking.ci[0]:.3f}–{self.hacking.ci[1]:.3f})",
-                f"- Hackable: {self.hacking.hackable}",
-            ]
-            for name, (g, lo, hi) in self.hacking.per_probe.items():
-                lines.append(f"  - {name}: +{g:.3f} (CI {lo:.3f}–{hi:.3f})")
-        if self.monotonicity is not None:
-            lines += [
-                "",
-                "## Discrimination / monotonicity",
-                f"- Spearman(corruption, reward): {self.monotonicity.spearman:.3f}",
-                f"- Inversions: {self.monotonicity.inversions}; "
-                f"separation: {self.monotonicity.separation:.3f}; "
-                f"monotonic: {self.monotonicity.monotonic}",
-            ]
-        if self.stability is not None:
-            lines += [
-                "",
-                "## Grader stability",
-                f"- Reward std: {self.stability.reward_std:.3f}; "
-                f"stable: {self.stability.stable}",
-            ]
-        if self.structure is not None:
-            lines += [
-                "",
-                "## Criterion structure",
-                f"- Redundant pairs: {self.structure.redundant_pairs}",
-                f"- Low-signal criteria: {self.structure.low_signal_criteria}",
-            ]
-        if self.alignment is not None:
-            lines += [
-                "",
-                "## Human alignment",
-                f"- Correlation: {self.alignment.correlation:.3f}; "
-                f"QWK: {self.alignment.qwk:.3f}; "
-                f"calibration error: {self.alignment.calibration_error:.3f}",
-            ]
+        for name, score in self.sub_scores().items():
+            lines.append(f"| {name} | {score:.2f} | {_what_it_means(name, results[name])} |")
+        lines += [
+            "",
+            "Raw metrics (Spearman, hack gain, per-criterion gameability, CIs, QWK) "
+            "are in the JSON output — run with `--out report.json`.",
+        ]
         text = "\n".join(lines) + "\n"
         if path:
             with open(path, "w", encoding="utf-8") as fh:
