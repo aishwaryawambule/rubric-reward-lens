@@ -122,6 +122,9 @@ over a per-diagnostic table where every score reads 0–1 (1 = good) with a plai
 | alignment    | 0.00  | does not match human scores                  |
 ```
 
+See [**`examples/sample_report.html`**](examples/sample_report.html) for a full generated
+report (open it in a browser) — the output of `rrl demo`.
+
 Two short docs explain the output: [**Interpreting the report card**](docs/interpreting-the-report.md)
 (how to read it and decide if a reward is safe to train on) and
 [**Metrics & scores reference**](docs/metrics.md) (the precise definition of every metric and score).
