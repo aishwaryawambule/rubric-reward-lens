@@ -52,7 +52,7 @@ documented failure modes. Add, at least:
 
 ## Packaging & distribution
 
-- **Publish to PyPI** so `pip install rubric-reward-lens` works (today: install from a clone).
+- **Publish to PyPI** — ✅ done: `pip3 install rubric-reward-lens`.
 - Optional extras for grader backends.
 
 ## Reporting

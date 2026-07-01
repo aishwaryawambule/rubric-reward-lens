@@ -35,19 +35,22 @@ for gameability**.
 
 ## Install
 
-Not on PyPI yet — install from a clone:
+```bash
+pip3 install rubric-reward-lens
+```
+
+Requires Python ≥ 3.11. Inference-only: needs `numpy`, `pyyaml`, `httpx`. No GPU, no `torch`.
+
+**From a clone** (for development, or to run the `examples/` scripts):
 
 ```bash
 git clone https://github.com/aishwaryawambule/rubric-reward-lens
 cd rubric-reward-lens
-pip install .          # add ".[dev]" to also get pytest
+pip3 install .          # add ".[dev]" for pytest
 ```
 
-Use a regular `pip install .`, **not** the editable `pip install -e .` — on recent
+Use a regular `pip3 install .`, **not** the editable `pip3 install -e .` — on recent
 Python (3.14) the editable install can silently produce a non-importable package.
-Once published, `pip install rubric-reward-lens` will work directly.
-
-Requires Python ≥ 3.11. Inference-only: needs `numpy`, `pyyaml`, `httpx`. No GPU, no `torch`.
 
 ## Quickstart
 

@@ -23,7 +23,7 @@ git clone https://github.com/aishwaryawambule/rubric-reward-lens
 cd rubric-reward-lens
 python3 -m venv .venv
 source .venv/bin/activate
-pip install .          # NOT "-e ." — editable installs can silently fail on Python 3.14
+pip3 install .          # NOT "-e ." — editable installs can silently fail on Python 3.14
 ```
 
 > Requires Python ≥ 3.11. No GPU, no `torch`.
@@ -155,6 +155,6 @@ judge is gameable and how well it aligns with the real human scores.
 Run the suite too:
 
 ```bash
-pip install ".[dev]"
+pip3 install ".[dev]"
 pytest
 ```
