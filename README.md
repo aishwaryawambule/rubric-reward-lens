@@ -53,7 +53,7 @@ Requires Python ≥ 3.11. Inference-only: needs `numpy`, `pyyaml`, `httpx`. No G
 
 Two ways to use it — as a **Python library** (embed it in an eval pipeline / CI gate / RL
 setup) or from the **CLI** (quick one-off audits). Both are shown below; see
-[**Usage**](docs/usage.md) for the full guide, custom graders, and integration patterns.
+[**Usage**](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/docs/usage.md) for the full guide, custom graders, and integration patterns.
 
 ```python
 from rubric_reward_lens import Rubric, OpenRouterGrader, audit, load_demo
@@ -88,7 +88,7 @@ rrl audit --rubric examples/rubric.yaml --grader examples/grader.fake.yaml \
 ```
 
 Grader configs for the CLI: `{type: fake}`, `{type: ollama, model: ...}`, or
-`{type: openrouter, model: ...}` — see [examples/](examples/).
+`{type: openrouter, model: ...}` — see [examples/](https://github.com/aishwaryawambule/rubric-reward-lens/tree/main/examples/).
 
 ## What it checks (the diagnostics)
 
@@ -123,12 +123,12 @@ over a per-diagnostic table where every score reads 0–1 (1 = good) with a plai
 ```
 
 See a full generated report (the output of `rrl demo`):
-[**`sample_report.md`**](examples/sample_report.md) (renders right here on GitHub) or
-[`sample_report.html`](examples/sample_report.html) (styled — open in a browser).
+[**`sample_report.md`**](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/examples/sample_report.md) (renders right here on GitHub) or
+[`sample_report.html`](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/examples/sample_report.html) (styled — open in a browser).
 
-Two short docs explain the output: [**Interpreting the report card**](docs/interpreting-the-report.md)
+Two short docs explain the output: [**Interpreting the report card**](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/docs/interpreting-the-report.md)
 (how to read it and decide if a reward is safe to train on) and
-[**Metrics & scores reference**](docs/metrics.md) (the precise definition of every metric and score).
+[**Metrics & scores reference**](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/docs/metrics.md) (the precise definition of every metric and score).
 
 ## Using an LLM-as-a-judge for anything?
 
@@ -175,7 +175,7 @@ v0.1 is deliberately a small, honest core. Know these before you rely on it:
 - **Early and evolving (v0.1).** Not yet stable software — the API, report format, and
   verdict thresholds may change between versions, so pin the version if you depend on it.
 
-See [ROADMAP.md](ROADMAP.md) for what's planned next.
+See [ROADMAP.md](https://github.com/aishwaryawambule/rubric-reward-lens/blob/main/ROADMAP.md) for what's planned next.
 
 ## Note on the demo data
 
