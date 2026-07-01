@@ -26,9 +26,5 @@ report*.json
 # ours to redistribute — the bundled demo data is synthetic on purpose)
 examples/helpsteer2_responses.json
 
-# SDD / planning scratch (not committed)
-.superpowers/
-docs/superpowers/
-
 # OS
 .DS_Store
