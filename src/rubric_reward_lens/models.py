@@ -104,3 +104,20 @@ class GraderResult:
             if cs.criterion_id == cid:
                 return cs.score
         raise KeyError(cid)
+
+
+@dataclass
+class DiagnosticResult:
+    """Result of a custom diagnostic, for ``audit(extra_diagnostics=...)``.
+
+    A custom diagnostic is any callable ``(rubric, grader, responses) ->
+    DiagnosticResult``. ``score`` is a 0-1 sub-score (1 = good, like the
+    built-ins) that flows into the trust score; ``summary`` is the plain-English
+    "what it means" line shown in the report; ``raw`` holds any extra fields for
+    the JSON output.
+    """
+
+    name: str
+    score: float
+    summary: str = ""
+    raw: dict = field(default_factory=dict)

@@ -7,11 +7,15 @@ direction, not a backlog of blockers.
 
 ## Extensibility (the highest-leverage work)
 
-- **Plumb custom probes and diagnostics through `audit()` and the CLI.** Today a custom
-  probe reaches only `run_hacking(probes=...)`; `audit()` and `rrl audit` use the built-in
-  set. Expose a `probes=` / `diagnostics=` path end-to-end.
-- **A registry** so a new probe or diagnostic self-registers and `audit()` discovers it —
-  making "add your own metric" as easy as "bring your own grader" already is.
+- **Plumb custom probes and diagnostics through `audit()` and the CLI.** ✅ *Done at the
+  library level* — `audit(..., probes=[...], extra_diagnostics=[...])` accepts custom hack
+  probes and custom diagnostics (`(rubric, grader, responses) -> DiagnosticResult`, whose
+  sub-score flows into the trust score). Still todo: the **CLI** path — a YAML config can't
+  hold a Python function, so it needs named/registered probes and diagnostics.
+- **A named registry** so probes/diagnostics can be referenced by string from a CLI/YAML
+  config (e.g. `probes: [keyword_stuff, myplugin:sycophancy]`) — the missing piece for
+  CLI-level extensibility now that the library-level `probes=` / `extra_diagnostics=` paths
+  exist.
 
 ## More hack probes
 

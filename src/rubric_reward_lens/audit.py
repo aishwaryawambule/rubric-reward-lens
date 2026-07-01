@@ -10,8 +10,11 @@ from .diagnostics.monotonicity import run_monotonicity
 from .diagnostics.order import run_criterion_order
 from .diagnostics.stability import run_stability
 from .diagnostics.structure import run_structure
+from typing import Callable
+
 from .grader import Grader
-from .models import Response, Rubric
+from .models import DiagnosticResult, Response, Rubric
+from .probes import Probe
 from .report import ReportCard
 
 DEFAULT_DIAGNOSTICS = ("hacking", "monotonicity", "stability", "structure", "criterion_order")
@@ -25,12 +28,19 @@ def audit(
     human_labels: bool = False,
     n_boot: int = 1000,
     seed: int = 0,
+    probes: list[Probe] | None = None,
+    extra_diagnostics: list[Callable[[Rubric, Grader, list[Response]], DiagnosticResult]] | None = None,
 ) -> ReportCard:
     """Audit a rubric+grader reward signal and return a report card.
 
     ``diagnostics`` selects which label-free diagnostics to run. Set
     ``human_labels=True`` to additionally run the alignment diagnostic on
-    responses that carry a ``human_score``.
+    responses that carry a ``human_score``. Pass ``probes`` to override the
+    built-in hack probes with your own (each a ``Probe`` wrapping a
+    ``(response, rubric) -> response`` transform); ``None`` uses the defaults.
+    Pass ``extra_diagnostics`` — callables ``(rubric, grader, responses) ->
+    DiagnosticResult`` — to add your own diagnostics; their sub-scores flow into
+    the trust score and they appear in the report and JSON alongside the built-ins.
     """
     if not responses:
         raise ValueError(
@@ -41,7 +51,7 @@ def audit(
     card = ReportCard(rubric_name=rubric.name, n_responses=len(responses))
 
     if "hacking" in diagnostics:
-        card.hacking = run_hacking(rubric, grader, responses, n_boot=n_boot, seed=seed)
+        card.hacking = run_hacking(rubric, grader, responses, probes=probes, n_boot=n_boot, seed=seed)
     if "monotonicity" in diagnostics:
         card.monotonicity = run_monotonicity(rubric, grader, responses, n_boot=n_boot, seed=seed)
     if "stability" in diagnostics:
@@ -55,5 +65,9 @@ def audit(
         labeled = [r for r in responses if r.human_score is not None]
         if labeled:
             card.alignment = run_alignment(rubric, grader, labeled, n_boot=n_boot, seed=seed)
+
+    for fn in extra_diagnostics or []:
+        result = fn(rubric, grader, responses)
+        card.extra[result.name] = result
 
     return card

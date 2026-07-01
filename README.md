@@ -51,6 +51,10 @@ Requires Python ≥ 3.11. Inference-only: needs `numpy`, `pyyaml`, `httpx`. No G
 
 ## Quickstart
 
+Two ways to use it — as a **Python library** (embed it in an eval pipeline / CI gate / RL
+setup) or from the **CLI** (quick one-off audits). Both are shown below; see
+[**Usage**](docs/usage.md) for the full guide, custom graders, and integration patterns.
+
 ```python
 from rubric_reward_lens import Rubric, OpenRouterGrader, audit, load_demo
 
@@ -143,18 +147,29 @@ v0.1 is deliberately a small, honest core. Know these before you rely on it:
   (presence, verbosity, confidence, format). Domain-specific gaming — sycophancy,
   prompt-injection, self-preference, fabricated citations — is not covered. Add your own
   probe (a function `(response, rubric) -> response`) for those.
-- **Custom probes/diagnostics aren't first-class yet.** You can pass `probes=` to
-  `run_hacking` directly, but the one-line `audit()` / CLI always use the built-in set.
+- **Custom probes and diagnostics work — in code, not from the CLI.**
+  `audit(..., probes=[...], extra_diagnostics=[...])` accepts your own hack probes (each a
+  `Probe` wrapping a `(response, rubric) -> response` transform) and your own diagnostics (a
+  callable `(rubric, grader, responses) -> DiagnosticResult`). The **CLI** (`rrl audit`)
+  still uses the built-ins only — a YAML config can't hold a Python function. If you drive
+  the tool from a shell and need a custom probe/diagnostic, write a short script that calls
+  `audit(...)`. (Named/registered probes for the CLI are on the roadmap.)
 - **Diagnostics need a real sample.** With very few responses, hacking / monotonicity /
   structure / alignment are statistical artifacts (any 2 points force a correlation of ±1).
-  Aim for **~15–20+** responses; grader **stability** is the exception (meaningful at any n).
+  Aim for **~15–20+** responses; grader **stability** and **criterion-order** are the
+  exceptions — they measure the *judge*, so they're meaningful at any n.
 - **Auditing an LLM judge is not free.** Each response costs **~20 grade calls** (probes +
   degradation ladder + stability re-grades + criterion-order permutations), so cost ≈
   `20 × responses × grader-speed`. On a large local model this is minutes-to-hours; use a
   fast/cheap grader or a smaller sample.
-- **The composite trust score is a heuristic**, not a calibrated probability. Read the
-  per-diagnostic table, and treat a `Hackable` verdict as disqualifying regardless of the score.
-- **Early and unstable.** v0.1 — the API and outputs may change.
+- **The trust score is a rough heuristic, not a calibrated probability.** It's a plain
+  average of the sub-scores — `0.75` doesn't mean "75% safe" — and because hacking is only
+  *one term* in that average, a **gameable reward can still show a middling trust score**.
+  So don't rely on the composite alone. The **`Hackable` verdict is the single most
+  important thing to check — always heed it**: it disqualifies a reward on its own, no
+  matter how high the trust score. Read the per-diagnostic table for the rest.
+- **Early and evolving (v0.1).** Not yet stable software — the API, report format, and
+  verdict thresholds may change between versions, so pin the version if you depend on it.
 
 See [ROADMAP.md](ROADMAP.md) for what's planned next.
 

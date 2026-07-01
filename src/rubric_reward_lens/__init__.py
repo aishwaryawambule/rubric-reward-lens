@@ -15,11 +15,13 @@ from .grader import FakeGrader, aggregate
 from .models import (
     Criterion,
     CriterionScore,
+    DiagnosticResult,
     GraderResult,
     Polarity,
     Response,
     Rubric,
 )
+from .probes import Probe
 from .ollama import OllamaGrader
 from .openrouter import OpenRouterGrader
 from .report import ReportCard
@@ -30,10 +32,12 @@ __all__ = [
     "DEFAULT_DIAGNOSTICS",
     "Criterion",
     "CriterionScore",
+    "DiagnosticResult",
     "GraderResult",
     "Polarity",
     "Response",
     "Rubric",
+    "Probe",
     "FakeGrader",
     "aggregate",
     "OpenRouterGrader",

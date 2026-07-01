@@ -7,7 +7,7 @@ from __future__ import annotations
 import dataclasses
 import html
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .diagnostics.alignment import AlignmentResult
 from .diagnostics.hacking import HackingResult
@@ -15,6 +15,7 @@ from .diagnostics.monotonicity import MonotonicityResult
 from .diagnostics.order import OrderResult
 from .diagnostics.stability import StabilityResult
 from .diagnostics.structure import StructureResult
+from .models import DiagnosticResult
 
 
 def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
@@ -72,6 +73,7 @@ class ReportCard:
     structure: StructureResult | None = None
     order: OrderResult | None = None
     alignment: AlignmentResult | None = None
+    extra: dict[str, DiagnosticResult] = field(default_factory=dict)
 
     # ---- composite scoring -------------------------------------------------
     def sub_scores(self) -> dict[str, float]:
@@ -90,6 +92,8 @@ class ReportCard:
             s["criterion_order"] = 1.0 - _clamp(self.order.mean_drift)
         if self.alignment is not None:
             s["alignment"] = _clamp(self.alignment.qwk)
+        for name, r in self.extra.items():
+            s[name] = _clamp(r.score)
         return s
 
     @property
@@ -152,6 +156,7 @@ class ReportCard:
                 "structure": conv(self.structure) if self.structure else None,
                 "criterion_order": conv(self.order) if self.order else None,
                 "alignment": conv(self.alignment) if self.alignment else None,
+                **{name: conv(r) for name, r in self.extra.items()},
             },
         }
 
@@ -185,7 +190,8 @@ class ReportCard:
             "| --- | --- | --- |",
         ]
         for name, score in self.sub_scores().items():
-            lines.append(f"| {name} | {score:.2f} | {_what_it_means(name, results[name])} |")
+            meaning = _what_it_means(name, results[name]) if name in results else self.extra[name].summary
+            lines.append(f"| {name} | {score:.2f} | {meaning} |")
         lines += [
             "",
             "Raw metrics (Spearman, hack gain, per-criterion gameability, CIs, QWK) "
