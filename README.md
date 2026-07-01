@@ -4,7 +4,7 @@
 grader, and a few example answers — it tells you, *before you spend GPU on RL*, whether
 the reward signal actually measures quality or can be gamed.
 
-> ⚠️ Status: v0.1, early. The API may change. Issues and PRs welcome.
+> ⚠️ Status: v0.1, early. The API may change.
 
 ## The problem
 
