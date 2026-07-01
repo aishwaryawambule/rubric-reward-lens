@@ -19,7 +19,7 @@ normalized here to a `human_score` in `[0,1]`).
 ## 0. Setup
 
 ```bash
-git clone https://github.com/rubric-reward-lens/rubric-reward-lens
+git clone https://github.com/aishwaryawambule/rubric-reward-lens
 cd rubric-reward-lens
 python3 -m venv .venv
 source .venv/bin/activate

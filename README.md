@@ -38,7 +38,7 @@ for gameability**.
 Not on PyPI yet — install from a clone:
 
 ```bash
-git clone https://github.com/rubric-reward-lens/rubric-reward-lens
+git clone https://github.com/aishwaryawambule/rubric-reward-lens
 cd rubric-reward-lens
 pip install .          # add ".[dev]" to also get pytest
 ```
